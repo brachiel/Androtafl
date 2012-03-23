@@ -1,0 +1,52 @@
+
+/* Tafl board */
+
+jotaflboard {
+  display: block;
+  margin: 6px;
+}
+
+jocard {
+	margin: auto;
+	
+	text-align: center;
+}
+
+jotaflboard {
+	border-collapse: collapse;
+	
+	margin-left: 6px;
+ 	margin-right: 6px;
+}
+
+jotaflboard td {
+	padding: 0px;
+	width: 27px;
+	height: 27px;
+	
+	border: 1px solid grey;
+	
+	background-repeat: no-repeat !important;
+	background-position: center center !important;
+	background-size: 100% 100% !important;
+}
+
+jotaflboard td.W {
+	background-image: url(white.png);
+}
+
+jotaflboard td.B {
+	background-image: url(black.png);
+}
+
+jotaflboard td.K {
+	background-image: url(king.png);
+}
+
+jotaflboard td.throne {
+	background-color: #ccc;
+}
+
+jotaflboard td.selected {
+	background-color: yellow;
+}

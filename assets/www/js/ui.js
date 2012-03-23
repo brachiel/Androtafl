@@ -30,24 +30,48 @@ function updateBoard(board) {
 	}
 }
 
-function drawBoard(table, board) {
-	for (var i = 0; i < board.length; ++i) {
-		for (var j = 0; j < board[i].length; ++j) {
-			table.setCell
+/* Subclass of joTable */
+joTaflBoard = function(data) {
+	joTable.apply(this, arguments);
+};
+joTaflBoard.extend(joTable, {
+	tagName: "jotaflboard",
+	
+	// default row formatter
+	formatItem: function(row, index) {
+		var tr = document.createElement("tr");
+		
+		for (var i = 0, l = row.length; i < l; i++) {
+			var o = document.createElement("td");
+			//o.innerHTML = row[i];
+			o.innerHTML = "&nbsp;";
 			
+			// this is a little brittle, but plays nicely with joList's select event
+			o.setAttribute("index", index * l + i);
+			o.setAttribute("type", row[i]);
+			var classes;
+			switch (row[i]) {
+				case "k": classes="K throne"; break;
+				case ",": classes="throne"; break;
+				case ".": classes="empty"; break;
+				default: classes=row[i];
+			}
+			o.setAttribute("class", classes);
+			
+			tr.appendChild(o);
 		}
+		
+		return tr;
+	},
+
+	setCell: function(i, j) {
+		this.setValue(i*this.data.length + j);
 	}
-}
+	
+});
 
 var uiBoardData = prepareBoard(tafl_game.board);
-var uiBoard = new joTable(uiBoardData);
-
-// Add jo function that is not implemented, yet
-if (! uiBoard.setCell) {
-	uiBoard.setCell = function(i,j) {
-		uiBoard.setValue(i*N + j);
-	}
-}
+var uiBoard = new joTaflBoard(uiBoardData);
 
 // Build board widget and connect events
 
@@ -82,6 +106,7 @@ uiBoard.selectEvent.subscribe(function(index, table){
 			makeMove([moveFrom, [i, j]]);
 
 			moveFrom = null;
+			table.deselect();
 		} catch(e) {
 			if (e === "IllegalMove") {
 				table.deselect();
@@ -122,7 +147,7 @@ function makeMove(move) {
 
 // Build page
 var uiCard = new joCard([
-    new joTitle("Andotafl"),
+    new joTitle("Androtafl"),
     uiBoard
 ]);
 
