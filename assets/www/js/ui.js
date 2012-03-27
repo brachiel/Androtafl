@@ -11,6 +11,7 @@ tafl_game.to_move = Tafl.initialStates.Hnefatafl.to_move();
 
 var N = tafl_game.board.length;
 var uiBoard;
+var myColor;
 
 function prepareBoard(board) {
 	var ret_board = [];
@@ -77,6 +78,12 @@ var uiBoard = new joTaflBoard(uiBoardData);
 
 var moveFrom = null;
 uiBoard.selectEvent.subscribe(function(index, table){
+	if (tafl_game.to_move !== myColor) {
+		// not my turn
+		table.deselect();
+		return; 
+	};
+	
 	var i = table.getRow();
 	var j = table.getCol();
 	
@@ -103,7 +110,9 @@ uiBoard.selectEvent.subscribe(function(index, table){
 		}
 		
 		try {
-			makeMove([moveFrom, [i, j]]);
+			var move = [moveFrom, [i, j]];
+			makeMove(move);
+			TaflNet.send_move(move);
 
 			moveFrom = null;
 			table.deselect();
@@ -155,3 +164,18 @@ var uiStack = new joStack();
 var uiScreen = new joScreen(uiStack);
 
 uiStack.push(uiCard);
+
+// Connect Network
+
+TaflNet.connect();
+
+TaflNet.on_game_start = function(data) {
+	myColor = data.your_color;
+	var colorName = (myColor == 'W')?'White':'Black';
+	
+	uiScreen.alert("Game started. You're " + colorName);
+};
+
+TaflNet.on_move = function(move) {
+	makeMove(move);
+};

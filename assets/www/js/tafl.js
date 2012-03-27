@@ -290,3 +290,8 @@ var TaflUnitTest = function() {
 	
 	test("capture", state.board[10], "...WWWW.W..");
 };
+
+var exports = {};
+exports.tafl = Tafl;
+exports.taflstate = TaflState;
+exports.taflunittest = TaflUnitTest;
