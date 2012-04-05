@@ -5,16 +5,15 @@ var TaflNet = {
 			if (!address) address = "chrummibei.ch:47413";
 			
 			var s = io.connect("http://"+address);
+			
 			this.socket = s;
 			
 			s.on('connect', function() {
-				console.log("Connected");
 				s.emit('client.hello');
 			});
 			
 			s.on('server.hello', function(data) {
-				console.log("Got hello");
-				console.log(s.emit('game.find_opponent'));
+				s.emit('game.find_opponent');
 			});
 			
 			s.on('game.start', function(data) {
@@ -32,6 +31,8 @@ var TaflNet = {
 		
 		send_move: function(move) {
 			var s = this.socket;
+			if (! s)
+				throw "NotConnected";
 			s.emit('move.send', move);
 		},
 		

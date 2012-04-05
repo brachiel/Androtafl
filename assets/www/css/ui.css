@@ -1,52 +1,75 @@
 
-/* Tafl board */
 
-jotaflboard {
-  display: block;
-  margin: 6px;
+#board {
+	display: table;
+	
+	width: 100%;
+	height: 100%;
+	
+	border: 1px solid white;
+	
+	margin-left: auto;
+	margin-right: auto;
 }
 
-jocard {
-	margin: auto;
-	
-	text-align: center;
+#board .row {
+	display: table-row;
 }
 
-jotaflboard {
-	border-collapse: collapse;
+#board .square {
+	display: table-cell;
 	
-	margin-left: 6px;
- 	margin-right: 6px;
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-size: 100%;
 }
 
-jotaflboard td {
-	padding: 0px;
-	width: 27px;
-	height: 27px;
+#game_container {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
 	
-	border: 1px solid grey;
+	padding: 5px;
+	padding-top: 0px;
+	padding-bottom: 15px;
 	
-	background-repeat: no-repeat !important;
-	background-position: center center !important;
-	background-size: 100% 100% !important;
+	overflow: hidden;
 }
 
-jotaflboard td.W {
+#game_panel > div {
+	height: 100%;
+}
+
+.white {
 	background-image: url(white.png);
 }
 
-jotaflboard td.B {
+.black {
 	background-image: url(black.png);
 }
 
-jotaflboard td.K {
+.king {
 	background-image: url(king.png);
 }
 
-jotaflboard td.throne {
+.throne {
 	background-color: #ccc;
 }
 
-jotaflboard td.selected {
-	background-color: yellow;
+.active {
+	background-color: #dd6;
 }
+
+@media only screen and (orientation:landscape) {
+	#header, #menu {
+		display: none;
+	}
+	
+	#navbar {
+		display: block;
+	}
+}
+
+

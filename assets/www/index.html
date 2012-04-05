@@ -1,24 +1,66 @@
-<!DOCTYPE HTML>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN"
+    "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">
 <html>
- <head>
-  <title>PhoneGap</title>
-  
-  <meta name="viewport" content="width=320, initial-scale=1">
-  
-  <!-- Libraries -->
-  <link rel="stylesheet" type="text/css" href="css/jo/jo.css" />
-  <script type="text/javascript" charset="utf-8" src="js/cordova-1.5.0.js"></script>
-  <script type="text/javascript" charset="utf-8" src="js/socket.io.min.js"></script>
-  
-  <!-- Application Code -->
-  <link rel="stylesheet" type="text/css" href="css/ui.css" />
-  <script type="text/javascript" charset="utf-8" src="js/tafl.js"></script>
-  <script type="text/javascript" charset="utf-8" src="js/net.js"></script>
-  
-  
- </head>
- <body>
-  <script type="text/javascript" charset="utf-8" src="js/jo_min.js"></script>
-  <script type="text/javascript" charset="utf-8" src="js/ui.js"></script>
- </body>
+<head>
+ <title>Androtafl</title>
+ 
+ <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+ <meta name="apple-mobile-web-app-capable" content="yes" />
+ 
+ <!-- Libraries -->
+ <script type="text/javascript" charset="utf-8" src="js/cordova-1.5.0.js"></script>
+ <script type="text/javascript" charset="utf-8" src="js/socket.io.min.js"></script>
+ 
+ <link rel="stylesheet" type="text/css" href="css/jq.ui.css" />
+ 
+ <script type="text/javascript" charset="utf-8" src="js/jq.mobi.min.js"></script>
+ <script type="text/javascript" charset="utf-8" src="js/jq.ui.min.js"></script>
+ 
+ <!-- include touch.js on desktop browsers only -->
+ <script type="text/javascript">
+     if (!((window.DocumentTouch && document instanceof DocumentTouch) || 'ontouchstart' in window)) {
+         var script = document.createElement("script");
+         script.src = "js/touch.js";
+         var tag = $("head").append(script);
+         $.os.android = true; //let's make it run like an android device
+         $.os.desktop = true;
+     }
+ </script>
+ 
+ <!-- Application Code -->
+ <link rel="stylesheet" type="text/css" href="css/ui.css" />
+ 
+ <script type="text/javascript" charset="utf-8" src="js/tafl.js"></script>
+ <script type="text/javascript" charset="utf-8" src="js/net.js"></script>
+ <script type="text/javascript" charset="utf-8" src="js/ui.js"></script>
+</head>
+<body>
+ <div id="jQUi">
+  <div id="header">
+    <p>Score <span id="score"></span></p>
+  </div>
+  <div id="content">
+   <div id="main_panel" title="Androtafl" class="panel" selected="true">
+    <ul>
+     <li><a href="#game_panel" onclick="javascript:game_starter.network_game();">Network: random opponent</a></li>
+     <li><a href="#game_panel" onclick="javascript:game_starter.game_vs_black_ai();">Game against black AI</a></li>
+     <li><a href="#game_panel" onclick="javascript:game_starter.game_vs_white_ai();">Game against white AI</a></li>
+    </ul>
+   </div>
+   
+   <div id="game_panel" title="Androtafl" class="panel" scrolling="no">
+    <div id="game_container">
+     <div id="board"></div>
+    </div>
+   </div>
+  </div>
+  <div id="navbar">
+   <div class="horzRule"></div>
+   <a href="#main" id="navbar_home" class="icon home">home</a>
+   <a href="javascript:boardui.rate_current_state();" id="navbar_rate_this" class="icon">rate</a>
+  </div>
+ </div>
+</body>
 </html>

@@ -6,9 +6,22 @@ var tafllib = require('../assets/www/js/tafl');
 var tafl = tafllib.tafl;
 
 var games = {};
+var players = {};
 var sockets_waiting = [];
 
 var ready = function(socket) { socket.emit('ready'); };
+
+function generateRandomString(entropy) {
+	if (! entropy) { entropy = 8; }
+
+	var characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+	var randStr = '';
+	for (var i = 0; i < entropy; ++i) {
+		randStr += characters[Math.floor(Math.random() * characters.length)];
+	}
+
+	return randStr;
+}
 
 io.sockets.on('connection', function(socket) {
 	socket.emit('server.hello');
@@ -22,8 +35,17 @@ io.sockets.on('connection', function(socket) {
 		socket.set('game.id', game_id, ready(socket));
 	});
 
-	socket.on('client.hello', function() {
-		console.log("Got hello");
+	socket.on('client.hello', function(user_id) {
+		// generate user-id
+		if (! user_id)
+			user_id = generateRandomString(16);
+		
+		socket.set('player.id', user_id);
+		socket.emit('player.id.set', user_id);
+
+		players[user_id] = socket;
+
+		console.log("Got hello from " + user_id);
 	});
 
 	socket.on('game.find_opponent', function() {
