@@ -1,4 +1,11 @@
 
+#backButton {
+	display:none;
+}
+
+#header > h1 {
+	z-index: 0;
+}
 
 #board {
 	display: table;
@@ -60,16 +67,6 @@
 
 .active {
 	background-color: #dd6;
-}
-
-@media only screen and (orientation:landscape) {
-	#header, #menu {
-		display: none;
-	}
-	
-	#navbar {
-		display: block;
-	}
 }
 
 

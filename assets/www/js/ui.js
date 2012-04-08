@@ -2,28 +2,133 @@
 //Test
 //TaflUnitTest();
 
-/* Initialize and prepare the game */
-var tafl_game = new TaflState();
-tafl_game.loadBoard(Tafl.initialStates.Hnefatafl.board());
-tafl_game.to_move = Tafl.initialStates.Hnefatafl.to_move();
+
+var uisettings = {
+	notification: {
+		vibrate: true,
+		vibrate_length: 200, // in ms
+		beep: true,
+		beep_times: 1,
+	},
+};
+
+var storage = {
+	store: function(key, value) {
+		localStorage.setItem(key, JSON.stringify(value));
+	},
+	
+	get: function(key, deflt) {
+		var value = localStorage.getItem(key);
+		
+		return (value !== null)?JSON.parse(value):deflt;
+	},
+	
+	remove: function(key) {
+		localStorage.removeItem(key);
+	},
+	
+	save_game: function(safegame) {
+		var games = storage.get('open_games', []);
+		var has_gameid = false;
+		for (var i = 0; i < games.length; ++i) {
+			if (games[i].id === safegame.game_id) {
+				has_gameid = true;
+				
+				games[i].turn = safegame.game_state.move_history.length;
+				
+				break;
+			}
+		}
+		
+		if (has_gameid === false) {
+			games.push({id: safegame.game_id, name: safegame.game_name, turn: safegame.game_state.move_history.length});
+			storage.store('open_games', games);
+		}
+		
+		storage.store('safegame_' + safegame.game_id, safegame);
+	},
+};
+
+// Hook up listeners to save game state if we're shut down
+document.addEventListener("pause", killNet, false);
+document.addEventListener("offline", killNet, false);
+
 
 /* Create special boardui objects that handles ui related game functions */
 var boardui = {
 	moveFrom: null,
-	my_color: 'W',
+	my_color: null,
 	activeField: null,
 	active_field: null,
 	
-	max_width: null,
-	max_height: null,
+	game_state: null,
+	network_game: false,
 	
-	is_ai: {'W': false, 'B': true },
+	game_name: 'Unnamed game',
+	game_id: null,
+	
+	board_size_fixed: false,
+	
+	is_ai: {'W': false, 'B': false },
 		
 	init: function() {
-		this.max_width = document.getElementById('board').offsetWidth;
-		this.max_height = document.getElementById('board').offsetHeight;
+		if (boardui.board_size_fixed === false) {
+			console.log("Board size fix");
+			boardui.fix_board_size();
+			boardui.board_size_fixed = true;
+		}
+	},
+	
+	load_state: function(game_state) {
+		if (! game_state) {
+			game_state = boardui.create_new_state();
+		} else {
+			// Make sure game_state is a TaflState
+			game_state.__proto__ = TaflState.prototype;
+		}
 		
-		return (this.max_width > 0 && this.max_height > 0);
+		boardui.game_state = game_state;
+		boardui.fill_board(game_state.board);
+	},
+	
+	save_game: function() {
+		if (! boardui.game_id) {
+			boardui.game_id = generateRandomString();
+		}
+
+		var safegame = {};
+		safegame.my_color = boardui.my_color;
+		safegame.game_id = boardui.game_id;
+		safegame.game_name = boardui.game_name;
+		safegame.is_ai = boardui.is_ai;
+		safegame.network_game = boardui.network_game;
+		
+		// Get rid of legal_move_cache before storing
+		boardui.game_state.legal_move_cache = null;
+		safegame.game_state = boardui.game_state;
+		
+		storage.save_game(safegame);
+	},
+	
+	load_game: function(safegame) {
+		boardui.my_color = safegame.my_color;
+		boardui.game_id = safegame.game_id;
+		boardui.game_name = safegame.game_name;
+		boardui.is_ai = safegame.is_ai;
+		boardui.network_game = safegame.network_game;
+		
+		boardui.moveFrom = null;
+		boardui.deactivate();
+		
+		boardui.load_state(safegame.game_state);
+	},
+	
+	create_new_state: function() {
+		game_state = new TaflState();
+		game_state.loadBoard(Tafl.initialStates.Hnefatafl.board());
+		game_state.to_move = Tafl.initialStates.Hnefatafl.to_move();
+		
+		return game_state;
 	},
 	
 	get_classes: function(type) {
@@ -39,6 +144,8 @@ var boardui = {
 	
 	fill_board: function(board) {
 		var N = board.length;
+		
+		$("#board").empty();
 		
 		for (var i = 0; i < N; ++i) {
 			var row = $('<div class="row"></div>');
@@ -117,8 +224,12 @@ var boardui = {
 	},
 	
 	square_clicked: function() {
-		if (tafl_game.to_move !== boardui.my_color) {
+		if (boardui.game_state === null) { return; }
+		console.log('game_state');
+		
+		if (boardui.game_state.to_move !== boardui.my_color) {
 			// not my turn
+			console.log('not my turn');
 			return;
 		};
 		
@@ -128,10 +239,14 @@ var boardui = {
 		//this.style.border = '2px solid green';
 		
 		if (boardui.moveFrom === null) {
-			if (Tafl.is_moving_color(tafl_game, [i, j])) {
+			console.log('wee');
+			
+			console.log(boardui.game_state.to_move);
+			if (Tafl.is_moving_color(boardui.game_state, [i, j])) {
+				console.log("asd");
 				
 				// Check if there is a move possible from this location
-				var legal_moves = Tafl.legal_moves(tafl_game);
+				var legal_moves = Tafl.legal_moves(boardui.game_state);
 				
 				for (var k = 0; k < legal_moves.length; ++k) {
 					if (legal_moves[k][0][0] === i && legal_moves[k][0][1] === j) {
@@ -143,6 +258,7 @@ var boardui = {
 
 				// If this is reached, no possible move from here
 			}
+			console.log("clock");
 		} else {
 			if (boardui.moveFrom[0] === i && boardui.moveFrom[1] === j) { // Deactivate active piece
 				boardui.moveFrom = null;
@@ -153,7 +269,10 @@ var boardui = {
 			try {
 				var move = [boardui.moveFrom, [i, j]];
 				boardui.make_move(move);
-				TaflNet.send_move(move);
+				
+				if (boardui.network_game === true) {
+					TaflNet.send_move(move);
+				}
 
 				boardui.moveFrom = null;
 				boardui.deactivate();
@@ -174,22 +293,22 @@ var boardui = {
 	},
 	
 	make_move: function(move) {
-		Tafl.make_move(tafl_game, move);
+		Tafl.make_move(boardui.game_state, move);
 		
-		this.update_board(tafl_game.board);
+		this.update_board(boardui.game_state.board);
 		
-		if (Tafl.terminal_test(tafl_game) === true) {
+		if (Tafl.terminal_test(boardui.game_state) === true) {
 			// Game ended
 			var win_reason;
 			
-			switch(tafl_game.win_reason) {
+			switch(boardui.game_state.win_reason) {
 				case 'NoKing': win_reason = 'The King was captured.'; break;
 				case 'KingEscaped': win_reason = 'The King escaped.'; break;
 				case 'NoLegalMoves': win_reason = 'There are no legal moves.'; break;
 				default: win_reason = 'For a unknown reason';
 			}
 			
-			var winner = (tafl_game.winner == 'W')?'White':'Black';
+			var winner = (boardui.game_state.winner == 'W')?'White':'Black';
 			
 			boardui.alert(win_reason + "<br/>" + winner + " player wins.");
 		} else {
@@ -199,72 +318,95 @@ var boardui = {
 	},
 	
 	make_ai_move: function() {
-		console.log(boardui.is_ai[tafl_game.to_move]);
-		if (boardui.is_ai[tafl_game.to_move] !== true) {
+		if (boardui.is_ai[boardui.game_state.to_move] !== true) {
 			return;
 		}
 		
 		// Start new thread for this
 		setTimeout(function() {
-			var ai_move = TaflAI.get_best_move(tafl_game, 2);
+			var ai_move = TaflAI.get_best_move(boardui.game_state, 2);
 		
 			boardui.make_move(ai_move.move);
+			boardui.activate(ai_move.move[1][0], ai_move.move[1][1]);
+			
+			boardui.notifiy(); // Notify user of the new ai move
 		}, 0);
+	},
+	
+	on_leave_board: function() {
+		boardui.save_game();
 	},
 	
 	alert: function(message) {
 		$.ui.popup(message);
+		
+		this.notifiy();
+	},
+	
+	notifiy: function() {
+		if (! navigator || ! navigator.notification) { return; }
+		
+		if (uisettings.notification.vibrate) {
+			navigator.notification.vibrate(uisettings.notification.vibrate_length);
+		}
+		
+		if (uisettings.notification.beep) {
+			navigator.notification.beep(uisettings.notification.beep_times);
+		}
 	},
 	
 	
 	rate_current_state: function() {
-		var score = TaflAI.rate_state(tafl_game);
+		var score = TaflAI.rate_state(boardui.game_state);
 		$("#score").text(score);
 	},
 };
-
-
-$().ready(function(){
-	// Fill board
-
-	var waitForCss = setInterval(function(){
-		if (boardui.init()) {
-			// Game init successful
-			clearInterval(waitForCss);
-
-			boardui.fix_board_size();
-			boardui.fill_board(tafl_game.board);
-		}
-	}, 50);
-
-	window.onresize = function() {
-		setTimeout(boardui.fix_board_size, 50);
-	};
-
-	/*
-	window.onorientationchange = function() {
-		console.log(window.orientation);
-		
-		switch (window.orientation) {
-			case 90:
-			case -90:
-				boardui.fix_board_size();
-				break;
-			default:
-				boardui.fix_board_size();
-				break;
-		}
-	};
-	*/
-});
+var boardUiInitializeBoard = boardui.init;
+var boardUiLeaveBoard = boardui.on_leave_board;
 
 
 var game_starter = {
+	load_game_list: function() {
+		$.ui.setTitle("Androtafl");
+		
+		console.log("game list");
+		
+		var games = storage.get('open_games', []);
+		
+		$("#game_list").empty();
+		for (var i = 0; i < games.length; ++i) {
+			//if (options !== undefined) {
+				$("#game_list").append('<li><a href="#game_panel" onclick="javascript:game_starter.load_game(\''+
+												games[i].id+'\');">' + games[i].name + ' (turn ' + games[i].turn + ')</a></li>');
+			//}
+		}
+	},
+	
+	load_game: function(game_id) {
+		console.log("load game");
+		
+		var safegame = storage.get("safegame_" + game_id);
+		
+		if (safegame === null) {
+			return;
+		}
+		
+		boardui.load_game(safegame);
+	},
+	
 	network_game: function() {
 		TaflNet.connect();
 		
 		document.addEventListener("pause", killNet, false);
 		document.addEventListener("offline", killNet, false);
+		
+		$.ui.setTitle("Network game");
+		
+		boardui.game_name = "Network game";
+		boardui.network_game = true;
+		
+		$("#wait_for_game").css('display','block');
+		$("#game_container").css('display','none');
 	},
 	
 	game_vs_white_ai: function() {
@@ -272,6 +414,11 @@ var game_starter = {
 		boardui.is_ai['B'] = false;
 		boardui.my_color = 'B';
 		
+		boardui.game_name = "You VS. CPU";
+		
+		boardui.load_state();
+
+		$.ui.setTitle("You VS. CPU");
 		boardui.make_ai_move();
 	},
 	
@@ -280,12 +427,25 @@ var game_starter = {
 		boardui.is_ai['B'] = true;
 		boardui.my_color = 'W';
 		
+		boardui.game_name = "CPU VS. You";
+
+		boardui.load_state();
+
+		$.ui.setTitle("CPU VS. You");
 		boardui.make_ai_move();
 	},
 };
+var gameStarterLoadGameList = game_starter.load_game_list; // To be accessed via data-load
 
 TaflNet.on_game_start = function(data) {
+	$("#wait_for_game").css('display','none');
+	$("#game_container").css('display','block');
+
 	boardui.my_color = data.your_color;
+	
+	boardui.game_id = data.game_id;
+	boardui.load_state();
+	
 	var colorName = (data.your_color == 'W')?'White':'Black';
 	
 	boardui.alert("Game started. You're " + colorName);
@@ -294,6 +454,8 @@ TaflNet.on_game_start = function(data) {
 TaflNet.on_move = function(move) {
 	boardui.make_move(move);
 	boardui.activate(move[1][0], move[1][1]);
+	
+	boardui.notifiy(); // Notify the user of the opponents move
 };
 
 

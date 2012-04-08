@@ -3,6 +3,7 @@
 // TODO: Rewrite the initialisation to be used behind apache
 var io = require('socket.io').listen(47413);
 var tafllib = require('../assets/www/js/tafl');
+var tools = require('../assets/www/js/tools');
 var tafl = tafllib.tafl;
 
 var games = {};
@@ -10,18 +11,6 @@ var players = {};
 var sockets_waiting = [];
 
 var ready = function(socket) { socket.emit('ready'); };
-
-function generateRandomString(entropy) {
-	if (! entropy) { entropy = 8; }
-
-	var characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-	var randStr = '';
-	for (var i = 0; i < entropy; ++i) {
-		randStr += characters[Math.floor(Math.random() * characters.length)];
-	}
-
-	return randStr;
-}
 
 io.sockets.on('connection', function(socket) {
 	socket.emit('server.hello');
@@ -37,11 +26,13 @@ io.sockets.on('connection', function(socket) {
 
 	socket.on('client.hello', function(user_id) {
 		// generate user-id
-		if (! user_id)
+		if (! user_id) {
 			user_id = generateRandomString(16);
 		
+			socket.emit('player.id.set', user_id);
+		}
+		
 		socket.set('player.id', user_id);
-		socket.emit('player.id.set', user_id);
 
 		players[user_id] = socket;
 
@@ -61,9 +52,11 @@ io.sockets.on('connection', function(socket) {
 
 		socket.opponent = socket2;
 		socket2.opponent = socket;
+		
+		var game_id = generateRandomString();
 
-		socket2.emit('game.start', {your_color: 'W'});
-		socket.emit('game.start', {your_color: 'B'});
+		socket2.emit('game.start', {your_color: 'W', board_id: game_id });
+		socket.emit('game.start', {your_color: 'B', board_id: game_id });
 	});
 
 	socket.on('board.get', function() {

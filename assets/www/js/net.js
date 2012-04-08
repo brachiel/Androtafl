@@ -1,6 +1,8 @@
 
 
 var TaflNet = {
+		user_id: null,
+		
 		connect: function(address) {
 			if (!address) address = "chrummibei.ch:47413";
 			
@@ -9,11 +11,19 @@ var TaflNet = {
 			this.socket = s;
 			
 			s.on('connect', function() {
-				s.emit('client.hello');
+				if (user_id) {
+					s.emit('client.hello', {user_id: this.user_id});
+				} else {
+					s.emit('client.hello');
+				}
 			});
 			
 			s.on('server.hello', function(data) {
 				s.emit('game.find_opponent');
+			});
+			
+			s.on('player.id.set', function(data) {
+				TaflNet.user_id = data.user_id;
 			});
 			
 			s.on('game.start', function(data) {

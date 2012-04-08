@@ -24,43 +24,50 @@ function TaflState() {
 	this.legal_moves_cache = null;
 	this.winner = null;
 	this.win_reason = null;
+	
+	this.move_history = [];
 
 	// AI related variables
 	this.initial_W = null;
 	this.initial_B = null;
-
-	this.loadBoard = function(board) {
-		var i, j, pieces;
-
-		this.board = board;
-		this.N = board.length;
-
-		if (board[0].length !== this.N) throw "BoardNotSquare";
-
-		pieces = Tafl.count_pieces(board);
-		this.initial_W = pieces.W;
-		this.initial_B = pieces.B;
-	};
-
-	this.clone = function() {
-		var i, t = new TaflState();
-
-		for (i = 0; i < this.N; ++i) {
-			t.board[i] = this.board[i];
-		}
-
-		t.N = this.N;
-		t.to_move = this.to_move;
-		t.legal_moves_cache = this.legal_moves_cache;
-		t.winner = this.winner;
-		t.win_reason = this.win_reason;
-
-		t.initial_W = this.initial_W;
-		t.initial_B = this.initial_B;
-
-		return t;
-	}
 }
+TaflState.prototype.loadBoard = function(board) {
+	var i, j, pieces;
+
+	this.board = board;
+	this.N = board.length;
+
+	if (board[0].length !== this.N) throw "BoardNotSquare";
+
+	pieces = Tafl.count_pieces(board);
+	this.initial_W = pieces.W;
+	this.initial_B = pieces.B;
+};
+TaflState.prototype.clone = function() {
+	var i, t = new TaflState();
+
+	for (i = 0; i < this.N; ++i) {
+		t.board[i] = this.board[i];
+	}
+
+	t.N = this.N;
+	t.to_move = this.to_move;
+	t.legal_moves_cache = this.legal_moves_cache;
+	t.winner = this.winner;
+	t.win_reason = this.win_reason;
+
+	t.initial_W = this.initial_W;
+	t.initial_B = this.initial_B;
+	
+	t.move_history = [];
+	for (i = 0; i < this.move_history.length; ++i) {
+		var move = this.move_history[i];
+		
+		t.move_history.push([ [ move[0][0], move[0][1] ], [ move[1][0], move[1][1] ] ]);
+	}
+
+	return t;
+};
 
 var Tafl = {
 	legal_moves : function(s) {
@@ -153,6 +160,8 @@ var Tafl = {
 		else
 			s.to_move = 'W';
 
+		s.move_history.push(move);
+		
 		s.legal_moves_cache = null;
 	},
 

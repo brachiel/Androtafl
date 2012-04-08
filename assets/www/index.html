@@ -13,7 +13,8 @@
  <script type="text/javascript" charset="utf-8" src="js/cordova-1.5.0.js"></script>
  <script type="text/javascript" charset="utf-8" src="js/socket.io.min.js"></script>
  
- <link rel="stylesheet" type="text/css" href="css/jq.ui.css" />
+ <link rel="stylesheet" type="text/css" href="css/jq.ui.eco.css" />
+ <link rel="stylesheet" type="text/css" href="css/icons.css" />
  
  <script type="text/javascript" charset="utf-8" src="js/jq.mobi.min.js"></script>
  <script type="text/javascript" charset="utf-8" src="js/jq.ui.min.js"></script>
@@ -32,6 +33,7 @@
  <!-- Application Code -->
  <link rel="stylesheet" type="text/css" href="css/ui.css" />
  
+ <script type="text/javascript" charset="utf-8" src="js/tools.js"></script>
  <script type="text/javascript" charset="utf-8" src="js/tafl.js"></script>
  <script type="text/javascript" charset="utf-8" src="js/net.js"></script>
  <script type="text/javascript" charset="utf-8" src="js/ui.js"></script>
@@ -39,18 +41,29 @@
 <body>
  <div id="jQUi">
   <div id="header">
-    <p>Score <span id="score"></span></p>
   </div>
   <div id="content">
-   <div id="main_panel" title="Androtafl" class="panel" selected="true">
-    <ul>
-     <li><a href="#game_panel" onclick="javascript:game_starter.network_game();">Network: random opponent</a></li>
-     <li><a href="#game_panel" onclick="javascript:game_starter.game_vs_black_ai();">Game against black AI</a></li>
-     <li><a href="#game_panel" onclick="javascript:game_starter.game_vs_white_ai();">Game against white AI</a></li>
-    </ul>
+   <div id="main_panel" data-load="gameStarterLoadGameList" title="Androtafl" class="panel" selected="true">
+    <div class="group">
+     <h2>New game</h2>
+     <ul>
+      <li><a href="#game_panel" onclick="javascript:game_starter.network_game();">Network: random opponent</a></li>
+      <li><a href="#game_panel" onclick="javascript:game_starter.game_vs_black_ai();">Game against black AI</a></li>
+      <li><a href="#game_panel" onclick="javascript:game_starter.game_vs_white_ai();">Game against white AI</a></li>
+     </ul>
+    </div>
+    <div class="group">
+     <h2>Open games</h2>
+     <ul id="game_list">
+     </ul>
+    </div>
    </div>
    
-   <div id="game_panel" title="Androtafl" class="panel" scrolling="no">
+   <div id="game_panel" data-load="boardUiInitializeBoard" data-unload="boardUiLeaveBoard" title="Androtafl" class="panel" scrolling="no">
+    <div style="display: none;" id="wait_for_game">
+     <h2>We're looking for an opponent... Please wait...</h2>
+    </div>
+    
     <div id="game_container">
      <div id="board"></div>
     </div>
@@ -58,7 +71,7 @@
   </div>
   <div id="navbar">
    <div class="horzRule"></div>
-   <a href="#main" id="navbar_home" class="icon home">home</a>
+   <a href="#main_panel" id="navbar_home" class="icon home">home</a>
    <a href="javascript:boardui.rate_current_state();" id="navbar_rate_this" class="icon">rate</a>
   </div>
  </div>
